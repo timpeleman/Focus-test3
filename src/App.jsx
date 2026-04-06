@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
 
-
-// ✅ SCHONE, BUILD‑PROOF App.jsx (Vite + React 18)
-// ✅ Welkom‑scherm (taal = tekst)
-// ✅ Test → Eindresultaatscherm → PDF‑export
-
-
 // ✅ SCHONE, BUILD‑PROOF App.jsx (Vite + React 18)
 // ✅ Welkom‑scherm (taal = tekst)
 // ✅ Test → Eindresultaatscherm → PDF‑export
@@ -82,7 +76,6 @@ export default function App() {
       interpretation: "التقييم",
       excellent: "تركيز ممتاز",
       good: "تركيز جيد",
-      good: "تركيز جيد",
       medium: "تركيز متوسط",
       weak: "تركيز ضعيف",
       restart: "إعادة الاختبار",
@@ -103,7 +96,6 @@ export default function App() {
       resultTitle: "Test sonucu",
       interpretation: "Yorum",
       excellent: "Mükemmel odak",
-      good: "İyi odak",
       good: "İyi odak",
       medium: "Orta seviye odak",
       weak: "Zayıf odak",
@@ -207,8 +199,6 @@ export default function App() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               {COLORS.map(c => (
               ))}
-                <button key={c} style={btn} onClick={() => handleAnswer(c)}>{L.colors[c]}</button>
-              ))}
             </div>
           </>
         )}
@@ -217,17 +207,18 @@ export default function App() {
           <>
             <h1 style={{ textAlign: "center", color: "#e0e7ff" }}>{L.resultTitle}</h1>
             <p style={{ textAlign: "center", color: "#c7d2fe" }}>{L.interpretation}</p>
-            <p style={{ textAlign: "center" }}>{L.score}: {score} | {L.errors}: {errors.length}</p>
+            <h2 style={{ textAlign: "center", margin: "16px 0" }}>{interpret()}</h2>
+            <p sty            <h2 style={{ textAlign: "center", margin: "16px 0" }}>{interpret()}</h2>le={{ textAlign: "center" }}>{L.score}: {score} | {L.errors}: {errors.length}</p>
             <button style={{ ...btn, marginTop: 18 }} onClick={exportPDF}>{L.exportPdf}</button>
             <button style={{ ...btnSecondary, marginTop: 12 }} onClick={startTest}>{L.restart}</button>
-            <button style={{ ...btnSecondary, marginTop: 12 }} onClic            <h2 style={{ textAlign: "center", margin: "16px 0" }}>{interpret()}</h2>            <p style={{ textAlign: "center" }}>{L.score}: {score} | {L.errors}: {errors.length}</p>k={() => setStep("menu")}>{L.backMenu}</button>
-            <button style={{ ...btnSecondary, marginTop: 12 }} onClick={() => { setLanguage(null); setStep("welcome"); }}>{L.backWelcome}</button>
+            <butto            <button style={{ ...btnSecondary, marginTop: 12 }} onClick={() => { setLanguage(null); setStep("welcome"); }}>{L.backWelcome}</button>
           </>
         )}
 
       </div>
     </div>
   );
+            <button style={{ ...btnSecondary, marginTop: 12 }} onClick={() => setStep("menu")}>{L.backMenu}</button>
 }
 
 const btn = {
