@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
-import jsPDF from "jspdf";
-// ✅ MODERNE UI + BUILD‑PROOF App.jsx (Vite + React 18)
-// ✅ B — EINDRESULTAATSCHERM na de test
-// ✅ PDF‑exportknop toegevoegd
-// ✅ PDF‑exportknop toegevoegd
-// ✅ Welkom‑scherm: tekst = taalkeuze
+
+
+// ✅ SCHONE, BUILD‑PROOF App.jsx (Vite + React 18)
+// ✅ Welkom‑scherm (taal = tekst)
+// ✅ Test → Eindresultaatscherm → PDF‑export
+
+
+// ✅ SCHONE, BUILD‑PROOF App.jsx (Vite + React 18)
+// ✅ Welkom‑scherm (taal = tekst)
+// ✅ Test → Eindresultaatscherm → PDF‑export
 // ✅ Modern kleurenschema (Slate / Indigo)
-// ✅ 4‑minuten Focus (Stroop) test
 // ✅ Talen: NL / EN / AR (RTL) / TR
 
 export default function App() {
@@ -43,7 +46,6 @@ export default function App() {
       backMenu: "Terug naar menu",
       backWelcome: "Terug naar welkom",
       exportPdf: "PDF exporteren",
-      exportPdf: "PDF exporteren",
       colors: { red: "ROOD", blue: "BLAUW", green: "GROEN", yellow: "GEEL" }
     },
     en: {
@@ -65,7 +67,6 @@ export default function App() {
       backMenu: "Back to menu",
       backWelcome: "Back to welcome",
       exportPdf: "Export PDF",
-      exportPdf: "Export PDF",
       colors: { red: "RED", blue: "BLUE", green: "GREEN", yellow: "YELLOW" }
     },
     ar: {
@@ -80,13 +81,13 @@ export default function App() {
       resultTitle: "نتيجة الاختبار",
       interpretation: "التقييم",
       excellent: "تركيز ممتاز",
-      good: "تركيز جيد مع بعض الأخطاء",
+      good: "تركيز جيد",
+      good: "تركيز جيد",
       medium: "تركيز متوسط",
       weak: "تركيز ضعيف",
       restart: "إعادة الاختبار",
       backMenu: "العودة إلى القائمة",
       backWelcome: "العودة إلى الترحيب",
-      exportPdf: "تصدير PDF",
       exportPdf: "تصدير PDF",
       colors: { red: "أحمر", blue: "أزرق", green: "أخضر", yellow: "أصفر" }
     },
@@ -102,13 +103,13 @@ export default function App() {
       resultTitle: "Test sonucu",
       interpretation: "Yorum",
       excellent: "Mükemmel odak",
-      good: "İyi odak, birkaç hata",
+      good: "İyi odak",
+      good: "İyi odak",
       medium: "Orta seviye odak",
       weak: "Zayıf odak",
       restart: "Testi tekrar et",
       backMenu: "Menüye dön",
       backWelcome: "Hoş geldine dön",
-      exportPdf: "PDF dışa aktar",
       exportPdf: "PDF dışa aktar",
       colors: { red: "KIRMIZI", blue: "MAVİ", green: "YEŞİL", yellow: "SARI" }
     }
@@ -163,37 +164,17 @@ export default function App() {
     const pdf = new jsPDF();
     pdf.setFontSize(18);
     pdf.text(L.resultTitle, 14, 20);
-  const exportPDF = () => {
-    const pdf = new jsPDF();
-    pdf.setFontSize(18);
-    pdf.text(L.resultTitle, 14, 20);
-    pdf.setFontSize(12);
-    pdf.text(`${L.candidateId}: ${candidateId}`, 14, 35);
-    pdf.text(`${L.score}: ${score}`, 14, 45);
-    pdf.text(`${L.errors}: ${errors.length}`, 14, 55);
-
-
-    pdf.text(L.interpretation + ":", 14, 70);
-    pdf.text(interpret(), 14, 80, { maxWidth: 180 });
-
-
-    pdf.save(`focus-test-${candidateId || "result"}.pdf`);
-  };
-
 
     pdf.setFontSize(12);
     pdf.text(`${L.candidateId}: ${candidateId}`, 14, 35);
     pdf.text(`${L.score}: ${score}`, 14, 45);
     pdf.text(`${L.errors}: ${errors.length}`, 14, 55);
 
-
     pdf.text(L.interpretation + ":", 14, 70);
     pdf.text(interpret(), 14, 80, { maxWidth: 180 });
 
-
     pdf.save(`focus-test-${candidateId || "result"}.pdf`);
   };
-
 
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f172a, #020617)", display: "flex", justifyContent: "center", alignItems: "center", direction: isRTL ? "rtl" : "ltr" }}>
@@ -225,7 +206,9 @@ export default function App() {
             <p style={{ textAlign: "center", color: "#c7d2fe" }}>{L.clickColor}</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               {COLORS.map(c => (
-                <button key={c} s              ))}
+              ))}
+                <button key={c} style={btn} onClick={() => handleAnswer(c)}>{L.colors[c]}</button>
+              ))}
             </div>
           </>
         )}
@@ -234,10 +217,10 @@ export default function App() {
           <>
             <h1 style={{ textAlign: "center", color: "#e0e7ff" }}>{L.resultTitle}</h1>
             <p style={{ textAlign: "center", color: "#c7d2fe" }}>{L.interpretation}</p>
-            <h2 style={{ textAlign: "center", margin: "1            <p style={{ textAlign: "center" }}>{L.score}: {score}             <button style={{ ...btn, marginTop: 18 }} onClick={exportPDF}>{L.exportPdf}</button>            <button style={{ ...btnSecondary, marginTop: 12 }} onClick={startTest}>{L.restart}</button>| {L.errors}: {errors.length}</p>
+            <p style={{ textAlign: "center" }}>{L.score}: {score} | {L.errors}: {errors.length}</p>
             <button style={{ ...btn, marginTop: 18 }} onClick={exportPDF}>{L.exportPdf}</button>
             <button style={{ ...btnSecondary, marginTop: 12 }} onClick={startTest}>{L.restart}</button>
-            <button style={{ ...btnSecondary, marginTop: 12 }} onClick={() => setStep("menu")}>{L.backMenu}</button>
+            <button style={{ ...btnSecondary, marginTop: 12 }} onClic            <h2 style={{ textAlign: "center", margin: "16px 0" }}>{interpret()}</h2>            <p style={{ textAlign: "center" }}>{L.score}: {score} | {L.errors}: {errors.length}</p>k={() => setStep("menu")}>{L.backMenu}</button>
             <button style={{ ...btnSecondary, marginTop: 12 }} onClick={() => { setLanguage(null); setStep("welcome"); }}>{L.backWelcome}</button>
           </>
         )}
