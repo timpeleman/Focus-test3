@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useEffect, useRef, useState } from "react";
 import jsPDF from "jspdf";
 
 // ✅ STABIELE, OPSCHOONGEMAAKTE VERSIE
@@ -15,29 +14,19 @@ import jsPDF from "jspdf";
 export default function App() {
   const TEST_DURATION = 240; // seconden
   const HALF = TEST_DURATION / 2;
-  const COLORS = ["red", "blue", "green", "yellow"];
-
-
-  const TEST_DURATION = 240; // seconden
-  const HALF = TEST_DURATION / 2;
-  const COLORS = ["red", "blue", "green", "yellow"];
-
+  const COLORS = ["red", "blue", "green", "yellow"]
 
   const [language, setLanguage] = useState(null);
-  const [step, setStep] = useState("welcome"); // welcome | menu | test | result
   const [step, setStep] = useState("welcome"); // welcome | menu | test | result
   const [candidateId, setCandidateId] = useState("");
   const [word, setWord] = useState("");
   const [color, setColor] = useState("");
   const [timer, setTimer] = useState(0);
   const [responses, setResponses] = useState([]); // ⬅️ alle antwoorden
-  const [responses, setResponses] = useState([]); // ⬅️ alle antwoorden
-  const roundStart = useRef(0);
   const roundStart = useRef(0);
   const T = {
     nl: {
       welcome: "Welkom bij de Focus Test",
-      intro: "Voer je kandidaat-ID in om te starten.",
       intro: "Voer je kandidaat-ID in om te starten.",
       start: "Start",
       result: "Testresultaat",
@@ -100,23 +89,10 @@ export default function App() {
       reactionTime: rt,
       correct: chosen === color
     }]);
-  const answer = chosen => {
-    const rt = Math.round(performance.now() - roundStart.current);
-    setResponses(r => [...r, {
-      t: timer,
-      reactionTime: rt,
-      correct: chosen === color
-    }]);
+
     nextRound();
   };
 
-  const stats = segment => {
-    const seg = responses.filter(r => segment === 1 ? r.t < HALF : r.t >= HALF);
-    if (seg.length === 0) return { avgRT: 0, errors: 0, acc: 0 };
-    const avgRT = Math.round(seg.reduce((s, r) => s + r.reactionTime, 0) / seg.length);
-    const errors = seg.filter(r => !r.correct).length;
-    const acc = Math.round(((seg.length - errors) / seg.length) * 100);
-    return { avgRT, errors, acc };
   const stats = segment => {
     const seg = responses.filter(r => segment === 1 ? r.t < HALF : r.t >= HALF);
     if (seg.length === 0) return { avgRT: 0, errors: 0, acc: 0 };
@@ -130,20 +106,11 @@ export default function App() {
   const second = stats(2);
 
 
-  const overall = stats(1);
-  const second = stats(2);
-
-
   const exportPDF = () => {
     const pdf = new jsPDF();
 
     pdf.setFontSize(18);
-    pdf.text("Focus Test Rapport", 14, 20);
-    pdf.text("Focus Test Rapport", 14, 20);
-    pdf.setFontSize(12);
-    pdf.text(`${L.score}: ${overall.acc}%`, 14, 35);
-    pdf.text(`${L.rt}: ${overall.avgRT} ms`, 14, 45);
-    pdf.text(`${L.errors}: ${overall.errors}`, 14, 55);
+    pdf.text("Focus Test Rapport", 14, 20)
     pdf.setFontSize(12);
     pdf.text(`${L.score}: ${overall.acc}%`, 14, 35);
     pdf.text(`${L.rt}: ${overall.avgRT} ms`, 14, 45);
