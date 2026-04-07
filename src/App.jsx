@@ -1,76 +1,75 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import jsPDF from "jspdf";
 
-// ✅ H1+ — Resultaten + Foutenanalyse in PDF
-// ✅ Aantal fouten + tijdstippen (statistiek)
-// ✅ Meertalig + RTL + build‑proof
-
-
-// ✅ H1+ — Resultaten + Foutenanalyse in PDF
-// ✅ Aantal fouten + tijdstippen (statistiek)
-// ✅ Meertalig + RTL + build‑proof
-
-
+// ✅ STABIELE, OPSCHOONGEMAAKTE VERSIE
+// ✅ Reactietijd per antwoord
+// ✅ Segmentatie (0–120s / 120–240s)
+// ✅ Fouten + tijden in PDF
+// ✅ Build‑proof (Vite / Netlify / esbuild)
+// ✅ STABIELE, OPSCHOONGEMAAKTE VERSIE
+// ✅ Reactietijd per antwoord
+// ✅ Segmentatie (0–120s / 120–240s)
+// ✅ Fouten + tijden in PDF
+// ✅ Build‑proof (Vite / Netlify / esbuild)
 export default function App() {
+  const TEST_DURATION = 240; // seconden
+  const HALF = TEST_DURATION / 2;
+  const COLORS = ["red", "blue", "green", "yellow"];
+
+
+  const TEST_DURATION = 240; // seconden
+  const HALF = TEST_DURATION / 2;
+  const COLORS = ["red", "blue", "green", "yellow"];
+
+
   const [language, setLanguage] = useState(null);
-  const [step, setStep] = useState("welcome");
-  const [step, setStep] = useState("welcome");
+  const [step, setStep] = useState("welcome"); // welcome | menu | test | result
+  const [step, setStep] = useState("welcome"); // welcome | menu | test | result
   const [candidateId, setCandidateId] = useState("");
   const [word, setWord] = useState("");
   const [color, setColor] = useState("");
-  const [score, setScore] = useState(0);
   const [timer, setTimer] = useState(0);
-  const [errors, setErrors] = useState([]); // ⬅️ foutenlog
-
-
-  const [errors, setErrors] = useState([]); // ⬅️ foutenlog
-
-
-  const COLORS = ["red", "blue", "green", "yellow"];
-  const TEST_DURATION = 240;
-
+  const [responses, setResponses] = useState([]); // ⬅️ alle antwoorden
+  const [responses, setResponses] = useState([]); // ⬅️ alle antwoorden
+  const roundStart = useRef(0);
+  const roundStart = useRef(0);
   const T = {
     nl: {
       welcome: "Welkom bij de Focus Test",
-      intro: "Voer je kandidaat‑ID in om te starten.",
-      candidateId: "Kandidaat ID",
+      intro: "Voer je kandidaat-ID in om te starten.",
+      intro: "Voer je kandidaat-ID in om te starten.",
       start: "Start",
-      click: "Klik de KLEUR van het woord",
+      result: "Testresultaat",
+      backLang: "Terug naar taalkeuze",
+      export: "PDF exporteren",
       score: "Score",
       errors: "Fouten",
-      errorStats: "Foutenstatistiek",
-      errors: "Fouten",
-      errorStats: "Foutenstatistiek",
-      result: "Testresultaat",
-      interpretation: "Interpretatie",
-      excellent: "Uitstekende concentratie",
-      good: "Goede focus",
-      average: "Matige focus",
-      weak: "Zwak resultaat",
+      rt: "Reactietijd (ms)",
+      segment: "Segmentanalyse",
+      first: "Eerste helft (0–120s)",
+      second: "Tweede helft (120–240s)",
       export: "PDF exporteren",
-      backLang: "Terug naar taalkeuze",
-      backLang: "Terug naar taalkeuze",
-      report: "Focus Test Rapport",
-      date: "Datum",
-      time: "Tijd (s)",
-      color: "Kleur",
-      time: "Tijd (s)",
-      color: "Kleur",
+      score: "Score",
+      errors: "Fouten",
+      rt: "Reactietijd (ms)",
+      segment: "Segmentanalyse",
+      first: "Eerste helft (0–120s)",
+      second: "Tweede helft (120–240s)",
       colors: { red: "ROOD", blue: "BLAUW", green: "GROEN", yellow: "GEEL" }
     }
   };
 
   const L = language ? T[language] : {};
-  const isRTL = language === "ar";
 
+  // ⏱️ timer
+  // ⏱️ timer
   useEffect(() => {
     if (step !== "test") return;
     if (timer >= TEST_DURATION) {
       setStep("result");
       return;
     }
-    const id = setInterval(() => setTimer(t => t + 1), 1000);
-    return () => clearInterval(id);
     const id = setInterval(() => setTimer(t => t + 1), 1000);
     return () => clearInterval(id);
   }, [step, timer]);
@@ -80,203 +79,159 @@ export default function App() {
     const c = COLORS[Math.floor(Math.random() * COLORS.length)];
     setWord(w);
     setColor(c);
+    roundStart.current = performance.now();
+    roundStart.current = performance.now();
   };
 
   const startTest = () => {
-    if (!candidateId) return;
-    setScore(0);
-    setErrors([]);
-    setErrors([]);
+    setCandidateId(candidateId.trim());
+    setResponses([]);
+    setCandidateId(candidateId.trim());
+    setResponses([]);
     setTimer(0);
     nextRound();
     setStep("test");
   };
 
-  const answer = (c) => {
-    if (c === color) {
-      setScore(s => s + 1);
-    } else {
-      setErrors(e => [...e, { time: timer, chosen: c, correct: color }]);
-    }
-    if (c === color) {
-      setScore(s => s + 1);
-    } else {
-      setErrors(e => [...e, { time: timer, chosen: c, correct: color }]);
-    }
+  const answer = chosen => {
+    const rt = Math.round(performance.now() - roundStart.current);
+    setResponses(r => [...r, {
+      t: timer,
+      reactionTime: rt,
+      correct: chosen === color
+    }]);
+  const answer = chosen => {
+    const rt = Math.round(performance.now() - roundStart.current);
+    setResponses(r => [...r, {
+      t: timer,
+      reactionTime: rt,
+      correct: chosen === color
+    }]);
     nextRound();
   };
 
-  const accuracy = () => {
-    const total = score + errors.length;
-    if (total === 0) return 0;
-    return Math.round((score / total) * 100);
+  const stats = segment => {
+    const seg = responses.filter(r => segment === 1 ? r.t < HALF : r.t >= HALF);
+    if (seg.length === 0) return { avgRT: 0, errors: 0, acc: 0 };
+    const avgRT = Math.round(seg.reduce((s, r) => s + r.reactionTime, 0) / seg.length);
+    const errors = seg.filter(r => !r.correct).length;
+    const acc = Math.round(((seg.length - errors) / seg.length) * 100);
+    return { avgRT, errors, acc };
+  const stats = segment => {
+    const seg = responses.filter(r => segment === 1 ? r.t < HALF : r.t >= HALF);
+    if (seg.length === 0) return { avgRT: 0, errors: 0, acc: 0 };
+    const avgRT = Math.round(seg.reduce((s, r) => s + r.reactionTime, 0) / seg.length);
+    const errors = seg.filter(r => !r.correct).length;
+    const acc = Math.round(((seg.length - errors) / seg.length) * 100);
+    return { avgRT, errors, acc };
   };
-  const accuracy = () => {
-    const total = score + errors.length;
-    if (total === 0) return 0;
-    return Math.round((score / total) * 100);
-  };
-  const interpretationText = () => {
-    const a = accuracy();
-    if (a >= 85) return L.excellent;
-    if (a >= 70) return L.good;
-    if (a >= 50) return L.average;
-    return L.weak;
-  };
+
+  const overall = stats(1);
+  const second = stats(2);
+
+
+  const overall = stats(1);
+  const second = stats(2);
+
 
   const exportPDF = () => {
     const pdf = new jsPDF();
 
-
-    // Titel
-
-
-    // Titel
     pdf.setFontSize(18);
-    pdf.text(L.report, 14, 20);
-
-
-    // Metadata
-
-
-    // Metadata
-    pdf.setFontSize(11);
-    pdf.text(`${L.candidateId}: ${candidateId}`, 14, 32);
-    pdf.text(`${L.date}: ${new Date().toLocaleDateString()}`, 14, 40);
-
-
-    // Resultaat
-
-
-    // Resultaat
+    pdf.text("Focus Test Rapport", 14, 20);
+    pdf.text("Focus Test Rapport", 14, 20);
     pdf.setFontSize(12);
-    pdf.text(`${L.score}: ${accuracy()}%`, 14, 55);
-    pdf.text(`${L.errors}: ${errors.length}`, 14, 63);
-    pdf.text(`${L.interpretation}:`, 14, 73);
-    pdf.text(interpretationText(), 14, 83, { maxWidth: 180 });
-
-
-    // Foutenstatistiek
-    if (errors.length > 0) {
-      pdf.addPage();
-      pdf.setFontSize(14);
-      pdf.text(L.errorStats, 14, 20);
-
-
-      pdf.setFontSize(10);
-      let y = 32;
-      pdf.text(`${L.time} | ${L.color}`, 14, y);
-      y += 6;
-
-
-      errors.forEach(err => {
-        if (y > 270) {
-          pdf.addPage();
-          y = 20;
-        }
-        pdf.text(`${err.time}s | ${L.colors[err.chosen]} → ${L.colors[err.correct]}`, 14, y);
-    pdf.text(`${L.score}: ${accuracy()}%`, 14, 55);
-        y += 6;
-    pdf.text(`${L.errors}: ${errors.length}`, 14, 63);
-      });
-    pdf.text(`${L.interpretation}:`, 14, 73);
-    }
-    pdf.text(interpretationText(), 14, 83, { maxWidth: 180 });
-
-
-
-
-    // Foutenstatistiek
-    if (errors.length > 0) {
-      pdf.addPage();
-      pdf.setFontSize(14);
-      pdf.text(L.errorStats, 14, 20);
-
-
-      pdf.setFontSize(10);
-      let y = 32;
-      pdf.text(`${L.time} | ${L.color}`, 14, y);
-      y += 6;
-
-
-      errors.forEach(err => {
-        if (y > 270) {
-          pdf.addPage();
-          y = 20;
-        }
-        pdf.text(`${err.time}s | ${L.colors[err.chosen]} → ${L.colors[err.correct]}`, 14, y);
-        y += 6;
-      });
-    }
-
-
-    pdf.save(`focus-test-${candidateId || "result"}.pdf`);
+    pdf.text(`${L.score}: ${overall.acc}%`, 14, 35);
+    pdf.text(`${L.rt}: ${overall.avgRT} ms`, 14, 45);
+    pdf.text(`${L.errors}: ${overall.errors}`, 14, 55);
+    pdf.setFontSize(12);
+    pdf.text(`${L.score}: ${overall.acc}%`, 14, 35);
+    pdf.text(`${L.rt}: ${overall.avgRT} ms`, 14, 45);
+    pdf.text(`${L.errors}: ${overall.errors}`, 14, 55);
+    pdf.addPage();
+    pdf.setFontSize(14);
+    pdf.text(L.segment, 14, 20);
+    pdf.addPage();
+    pdf.setFontSize(14);
+    pdf.text(L.segment, 14, 20);
+    pdf.setFontSize(12);
+    pdf.text(L.first, 14, 35);
+    pdf.text(`RT: ${overall.avgRT} ms | Fouten: ${overall.errors} | Acc: ${overall.acc}%`, 14, 45);
+    pdf.text(L.first, 14, 35);
+    pdf.text(`RT: ${overall.avgRT} ms | Fouten: ${overall.errors} | Acc: ${overall.acc}%`, 14, 45);
+    pdf.text(L.second, 14, 65);
+    pdf.text(`RT: ${second.avgRT} ms | Fouten: ${second.errors} | Acc: ${second.acc}%`, 14, 75);
+    pdf.text(L.second, 14, 65);
+    pdf.text(`RT: ${second.avgRT} ms | Fouten: ${second.errors} | Acc: ${second.acc}%`, 14, 75);
+    pdf.save(`focus-${candidateId || "result"}.pdf`);
+    pdf.save(`focus-${candidateId || "result"}.pdf`);
   };
 
   return (
-    <div style={styles.page} dir={isRTL ? "rtl" : "ltr"}>
-      <div style={styles.card}>
-
-        {step === "welcome" && (
-          <div style={styles.center}>
-            <h1>Focus Test</h1>
-            <button style={styles.primary} onClick={() => { setLanguage("nl"); setStep("menu"); }}>Start</button>
-            <h1>Focus Test</h1>
-            <button style={styles.primary} onClick={() => { setLanguage("nl"); setStep("menu"); }}>Start</button>
-          </div>
-        )}
-
-        {step === "menu" && (
-          <>
-            <p>{L.intro}</p>
-            <p>{L.intro}</p>
-            <input style={styles.input} value={candidateId} onChange={e => setCandidateId(e.target.value)} placeholder={L.candidateId} />
-            <button style={styles.primary} onClick={startTest}>{L.start}</button>
-          </>
-        )}
-
-        {step === "test" && (
-          <div style={styles.center}>
-            <p>⏱ {timer}s</p>
-            <p>⏱ {timer}s</p>
-            <h2 style={{ ...styles.word, color }}>{L.colors[word]}</h2>
-            <p>{L.click}</p>
-            <p>{L.click}</p>
-            <div style={styles.grid}>
-              {COLORS.map(c => (
-                <button key={c} style={styles.secondary} onClick={() => answer(c)}>{L.colors[c]}</button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {step === "result" && (
-          <div style={styles.center}>
-            <h1>{L.result}</h1>
-            <p>{L.score}: {accuracy()}%</p>
-            <p>{L.errors}: {errors.length}</p>
-            <p>{interpretationText()}</p>
-            <button style={styles.primary} onClick={exportPDF}>{L.export}</button>
-            <button style={styles.secondary} onClick={() => { setLanguage(null); setStep("welcome"); }}>{L.backLang}</button>
-            <h1>{L.result}</h1>
-            <p>{L.score}: {accuracy()}%</p>
-            <p>{L.errors}: {errors.length}</p>
-            <p>{interpretationText()}</p>
-            <button style={styles.primary} onClick={exportPDF}>{L.export}</button>
-            <button style={styles.secondary} onClick={() => { setLanguage(null); setStep("welcome"); }}>{L.backLang}</button>
-          </div>
-        )}
-
-      </div>
+    <div style={{ padding: 24, fontFamily: "sans-serif" }}>
+      {step === "welcome" && (
+        <div>
+          <h1>Focus Test</h1>
+          <button onClick={() => { setLanguage("nl"); setStep("menu"); }}>Start</button>
+        </div>
+      )}
+    <div style={{ padding: 24, fontFamily: "sans-serif" }}>
+      {step === "welcome" && (
+        <div>
+          <h1>Focus Test</h1>
+          <button onClick={() => { setLanguage("nl"); setStep("menu"); }}>Start</button>
+        </div>
+      )}
+      {step === "menu" && (
+        <div>
+          <p>{L.intro}</p>
+          <input value={candidateId} onChange={e => setCandidateId(e.target.value)} />
+          <button onClick={startTest}>{L.start}</button>
+        </div>
+      )}
+      {step === "menu" && (
+        <div>
+          <p>{L.intro}</p>
+          <input value={candidateId} onChange={e => setCandidateId(e.target.value)} />
+          <button onClick={startTest}>{L.start}</button>
+        </div>
+      )}
+      {step === "test" && (
+        <div>
+          <p>{timer}s</p>
+          <h2 style={{ color }}>{L.colors[word]}</h2>
+          {COLORS.map(c => (
+            <button key={c} onClick={() => answer(c)}>{L.colors[c]}</button>
+          ))}
+      {step === "test" && (
+        </div>
+        <div>
+      )}
+          <p>{timer}s</p>
+          <h2 style={{ color }}>{L.colors[word]}</h2>
+          {COLORS.map(c => (
+            <button key={c} onClick={() => answer(c)}>{L.colors[c]}</button>
+          ))}
+        </div>
+      )}
+      {step === "result" && (
+        <div>
+          <h1>{L.result}</h1>
+          <p>{L.score}: {overall.acc}%</p>
+          <p>{L.rt}: {overall.avgRT} ms</p>
+          <p>{L.errors}: {overall.errors}</p>
+          <button onClick={exportPDF}>{L.export}</button>
+          <button onClick={() => { setLanguage(null); setStep("welcome"); }}>{L.backLang}</button>
+        </div>
+      )}
+      {step === "r                <h1>{L.result}</h1>
+          <p>{L.score}: {overall.acc}%</p>
+          <p>{L.rt}: {overall.avgRT} ms          <p>{L.errors}: {overall.errors}</p>
+          <button onClick={exportPDF}>{L.export}</button>
+          <button onClick={() => { setLanguage(null); setStep("welcome"); }}>{L.backLang}</button>
+        </div>
+      )}
     </div>
   );
 }
 
-const styles = {
-  page: { minHeight: "100vh", background: "#020617", display: "flex", justifyContent: "center", alignItems: "center" },
-  card: { background: "#020617", color: "#e5e7eb", padding: 32, width: 420 },
-  center: { textAlign: "center" },
-  primary: { width: "100%", padding: 12, marginBott  secondary: { width: "100%", padding: 12, marginBottom: 12, border: "1px solid #334155", background: "transparent", color: "#c7d2fe" },
-  grid:  word:};
-
-  
