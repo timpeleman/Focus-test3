@@ -84,7 +84,42 @@ export default function App() {
     const correct = responses.filter(r => r.correct).length;
     return Math.round((correct / responses.length) * 100);
   };
+// ===== SEGMENT ANALYSE =====
+const segmentStats = (from, to) => {
+  const seg = responses.filter(r => r.t >= from && r.t < to);
+  if (seg.length === 0) return { avgRT: 0, acc: 0 };
 
+  const avgRT = Math.round(
+    seg.reduce((s, r) => s + r.reactionTime, 0) / seg.length
+  );
+  const acc = Math.round(
+    (seg.filter(r => r.correct).length / seg.length) * 100
+  );
+
+  return { avgRT, acc };
+};
+
+const firstHalf = segmentStats(0, TEST_DURATION / 2);
+const secondHalf = segmentStats(TEST_DURATION / 2, TEST_DURATION);
+
+// ===== CONCLUSIE =====
+const focusConclusion = () => {
+  if (secondHalf.avgRT > firstHalf.avgRT + 100 && secondHalf.acc < firstHalf.acc) {
+    return "Concentratie neemt af gedurende de test.";
+  }
+  if (secondHalf.avgRT < firstHalf.avgRT && secondHalf.acc > firstHalf.acc) {
+    return "Prestatie verbetert naarmate de test vordert.";
+  }
+  return "Concentratie blijft stabiel gedurende de test.";
+};
+
+// ===== LABEL =====
+const focusLabel = () => {
+  const acc = accuracy();
+  if (acc >= 85) return "Sterk";
+  if (acc >= 70) return "Voldoende";
+  return "Aandachtspunt";
+};
   const avgRT = () => {
     if (responses.length === 0) return 0;
     return Math.round(
@@ -120,6 +155,8 @@ export default function App() {
     pdf.text(`Kandidaat-ID: ${candidateId}`, 14, 35);
     pdf.text(`${L.score}: ${accuracy()}%`, 14, 45);
     pdf.text(`${L.rt}: ${avgRT()}`, 14, 55);
+    pdf.text(`Label: ${focusLabel()}`, 14, 65);
+    pdf.text(focusConclusion(), 14, 75, { maxWidth: 180 });
 
     // Grafiek
     if (responses.length > 1) {
@@ -140,12 +177,21 @@ export default function App() {
       let py = null;
 
       responses.forEach((r, i) => {
-        const x = x0 + (i / (responses.length - 1)) * w;
-        const y = y0 - (r.reactionTime / maxRT) * h;
-        if (px !== null) pdf.line(px, py, x, y);
-        px = x;
-        py = y;
-      });
+  const x = x0 + (i / (responses.length - 1)) * w;
+  const y = y0 - (r.reactionTime / maxRT) * h;
+
+  if (px !== null) pdf.line(px, py, x, y);
+
+  // 🔴 fout markeren
+  if (!r.correct) {
+    pdf.setDrawColor(220, 38, 38);
+    pdf.circle(x, y, 2, "F");
+    pdf.setDrawColor(0, 0, 0);
+  }
+
+  px = x;
+  py = y;
+});
     }
 
     pdf.save(`focus-${candidateId}.pdf`);
@@ -202,6 +248,8 @@ export default function App() {
           <div style={styles.center}>
             <h1>{L.result}</h1>
             <p>{L.score}: {accuracy()}%</p>
+            <p><strong>Label:</strong> {focusLabel()}</p>
+            <p><em>{focusConclusion()}</em></p>
             <p>{L.rt}: {avgRT()} ms</p>
             <button style={styles.primary} onClick={exportPDF}>
               {L.export}
