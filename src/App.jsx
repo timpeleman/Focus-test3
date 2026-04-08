@@ -127,6 +127,8 @@ const focusLabel = () => {
     );
   };
 
+  
+
   const finishTest = () => {
     const entry = {
       id: Date.now(),
@@ -162,21 +164,23 @@ const focusLabel = () => {
     if (responses.length > 1) {
       pdf.addPage();
       pdf.setFontSize(14);
-      pdf.text(L.chart, 14, 20);
-
       const x0 = 20;
-      const y0 = 170;
-      const w = 170;
-      const h = 100;
+const y0 = 170;
+const w = 170;
+const h = 100;
 
-      pdf.line(x0, y0, x0 + w, y0);      // X-as
-      pdf.line(x0, y0, x0, y0 - h);      // Y-as
+// assen
+pdf.line(x0, y0, x0 + w, y0);     // X-as
+pdf.line(x0, y0, x0, y0 - h);     // Y-as
 
-      const maxRT = Math.max(...responses.map(r => r.reactionTime), 1);
-      let px = null;
-      let py = null;
+const maxRT = Math.max(...responses.map(r => r.reactionTime), 1);
 
-      responses.forEach((r, i) => {
+// ---- CORRECTE ANTWOORDEN (blauwe lijn) ----
+pdf.setDrawColor(37, 99, 235); // blauw
+let pxC = null;
+let pyC = null;
+
+responses.forEach((r, i) => {
   const x = x0 + (i / (responses.length - 1)) * w;
   const y = y0 - (r.reactionTime / maxRT) * h;
 
@@ -192,6 +196,26 @@ const focusLabel = () => {
   px = x;
   py = y;
 });
+
+// ---- FOUTE ANTWOORDEN (rode lijn + punten) ----
+pdf.setDrawColor(220, 38, 38); // rood
+let pxF = null;
+let pyF = null;
+
+responses.forEach((r, i) => {
+  if (r.correct) return;
+
+  const x = x0 + (i / (responses.length - 1)) * w;
+  const y = y0 - (r.reactionTime / maxRT) * h;
+
+  if (pxF !== null) pdf.line(pxF, pyF, x, y);
+  pdf.circle(x, y, 2, "F"); // punt markeren
+  pxF = x;
+  pyF = y;
+});
+
+// reset kleur
+pdf.setDrawColor(0, 0, 0);
     }
 
     pdf.save(`focus-${candidateId}.pdf`);
