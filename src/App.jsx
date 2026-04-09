@@ -214,6 +214,19 @@ responses.forEach((r, i) => {
   pyF = y;
 });
 
+// ---- Legenda ----
+pdf.setFontSize(10);
+
+// blauw
+pdf.setDrawColor(37, 99, 235);
+pdf.line(x0, y0 - h - 10, x0 + 12, y0 - h - 10);
+pdf.text("Correct antwoord", x0 + 16, y0 - h - 8);
+
+// rood
+pdf.setDrawColor(220, 38, 38);
+pdf.line(x0 + 90, y0 - h - 10, x0 + 102, y0 - h - 10);
+pdf.text("Fout antwoord", x0 + 106, y0 - h - 8);
+
 // reset kleur
 pdf.setDrawColor(0, 0, 0);
     }
