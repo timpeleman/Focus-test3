@@ -127,7 +127,33 @@ const focusLabel = () => {
     );
   };
 
-  
+  const avgCorrectRT = () => {
+  const c = responses.filter(r => r.correct);
+  if (c.length === 0) return 0;
+  return Math.round(c.reduce((s, r) => s + r.reactionTime, 0) / c.length);
+};
+
+const avgErrorRT = () => {
+  const e = responses.filter(r => !r.correct);
+  if (e.length === 0) return 0;
+  return Math.round(e.reduce((s, r) => s + r.reactionTime, 0) / e.length);
+};
+
+const rtDifference = () => avgErrorRT() - avgCorrectRT();
+const interpretationText = () => {
+  const diff = rtDifference();
+
+  if (diff > 150)
+    return "Fouten gaan gepaard met significant tragere reactietijden, wat kan wijzen op twijfel of cognitieve belasting.";
+
+  if (diff > 50)
+    return "Fouten hebben gemiddeld een iets tragere reactietijd dan correcte antwoorden.";
+
+  if (diff < -50)
+    return "Fouten gebeuren sneller dan correcte antwoorden, mogelijk door impulsief reageren.";
+
+  return "Reactietijd blijft vergelijkbaar tussen correcte en foute antwoorden.";
+};
 
   const finishTest = () => {
     const entry = {
@@ -157,6 +183,12 @@ const focusLabel = () => {
     pdf.text(`Kandidaat-ID: ${candidateId}`, 14, 35);
     pdf.text(`${L.score}: ${accuracy()}%`, 14, 45);
     pdf.text(`${L.rt}: ${avgRT()}`, 14, 55);
+    pdf.text(`Gem. RT correct: ${avgCorrectRT()} ms`, 14, 65);
+    pdf.text(`Gem. RT fout: ${avgErrorRT()} ms`, 14, 75);
+    pdf.text(`Verschil: ${rtDifference()} ms`, 14, 85);
+
+    pdf.setFontSize(11);
+    pdf.text(interpretationText(), 14, 97, { maxWidth: 180 });
     pdf.text(`Label: ${focusLabel()}`, 14, 65);
     pdf.text(focusConclusion(), 14, 75, { maxWidth: 180 });
 
@@ -230,7 +262,13 @@ pdf.text("Fout antwoord", x0 + 106, y0 - h - 8);
 // reset kleur
 pdf.setDrawColor(0, 0, 0);
     }
+pdf.setFontSize(12);
+pdf.text(`Gem. RT correct: ${avgCorrectRT()} ms`, 14, y0 - h - 40);
+pdf.text(`Gem. RT fout: ${avgErrorRT()} ms`, 14, y0 - h - 32);
+pdf.text(`Verschil: ${rtDifference()} ms`, 14, y0 - h - 24);
 
+pdf.setFontSize(11);
+pdf.text(interpretationText(), 14, y0 - h - 12, { maxWidth: 180 });
     pdf.save(`focus-${candidateId}.pdf`);
   };
 
@@ -285,12 +323,13 @@ pdf.setDrawColor(0, 0, 0);
           <div style={styles.center}>
             <h1>{L.result}</h1>
             <p>{L.score}: {accuracy()}%</p>
+            <p><em>{interpretationText()}</em></p>
             <p><strong>Label:</strong> {focusLabel()}</p>
             <p><em>{focusConclusion()}</em></p>
             <p>{L.rt}: {avgRT()} ms</p>
             <button style={styles.primary} onClick={exportPDF}>
               {L.export}
-            </button>
+            </button>²
             <button style={styles.secondary} onClick={() => setStep("menu")}>
               {L.back}
             </button>
